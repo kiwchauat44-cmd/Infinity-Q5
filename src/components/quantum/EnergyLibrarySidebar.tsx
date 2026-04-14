@@ -13,6 +13,8 @@ interface EnergyLibrarySidebarProps {
   onSearchChange: (query: string) => void;
   filterCategory: string | null;
   onFilterChange: (category: string | null) => void;
+  onUpdateColor: (type: string, color: string) => void;
+  customColors: Record<string, string>;
 }
 
 export default function EnergyLibrarySidebar({
@@ -24,7 +26,9 @@ export default function EnergyLibrarySidebar({
   searchQuery,
   onSearchChange,
   filterCategory,
-  onFilterChange
+  onFilterChange,
+  onUpdateColor,
+  customColors
 }: EnergyLibrarySidebarProps) {
   const filteredEnergies = energyTypes.filter(energy => {
     const matchesSearch = energy.label.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -106,10 +110,19 @@ export default function EnergyLibrarySidebar({
                   className="w-full flex items-center gap-4 p-4 bg-white/5 hover:bg-cyan-500/10 border border-white/5 hover:border-cyan-500/30 rounded-2xl transition-all group text-left"
                 >
                   <div 
-                    className="p-3 rounded-xl bg-black/40 border border-white/10 group-hover:border-cyan-500/50 transition-colors"
-                    style={{ color: energy.color }}
+                    className="p-3 rounded-xl bg-black/40 border border-white/10 group-hover:border-cyan-500/50 transition-colors relative"
+                    style={{ color: customColors[energy.id] || energy.color }}
                   >
                     {energy.icon}
+                    <input 
+                      type="color"
+                      value={customColors[energy.id] || energy.color}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onUpdateColor(energy.id, e.target.value);
+                      }}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-bold text-sm group-hover:text-cyan-400 transition-colors">{energy.label}</h3>

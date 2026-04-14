@@ -22,6 +22,8 @@ interface QuantumOverlayProps {
   onOpenAllViewer: () => void;
   onOpenCollisionLab: () => void;
   onOpenChainReactionLab: () => void;
+  onSpawnEnergy: (type: string) => void;
+  onUpdateColor: (type: string, color: string) => void;
   viewMode: string;
   onViewModeChange: (mode: any) => void;
 }
@@ -49,6 +51,8 @@ export default function QuantumOverlay({
   onOpenAllViewer,
   onOpenCollisionLab,
   onOpenChainReactionLab,
+  onSpawnEnergy,
+  onUpdateColor,
   viewMode,
   onViewModeChange
 }: QuantumOverlayProps) {
@@ -118,6 +122,27 @@ export default function QuantumOverlay({
                 <span className="text-xs font-bold text-cyan-100">Chain Reaction Lab</span>
               </button>
             </div>
+
+            {/* Selected Core Indicator */}
+            <div className="mt-4 flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+              <div className="flex items-center gap-3">
+                <div className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">Selected Core:</div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                  <span className="text-xs font-bold text-white tracking-tight">
+                    {energyLayers.length > 0 ? energyLayers[energyLayers.length - 1].name : 'NONE'}
+                  </span>
+                </div>
+              </div>
+              {energyLayers.length > 0 && (
+                <button
+                  onClick={() => onSpawnEnergy(energyLayers[energyLayers.length - 1].type)}
+                  className="px-4 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-black text-[10px] font-black rounded-lg transition-all active:scale-95 shadow-[0_0_15px_rgba(0,255,255,0.3)]"
+                >
+                  SPAWN +10
+                </button>
+              )}
+            </div>
           </motion.div>
 
           {/* View Mode Selector */}
@@ -156,10 +181,18 @@ export default function QuantumOverlay({
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]" 
-                        style={{ backgroundColor: layer.color, color: layer.color }} 
-                      />
+                      <div className="relative group/color">
+                        <div 
+                          className="w-4 h-4 rounded-full shadow-[0_0_10px_currentColor] cursor-pointer border border-white/20" 
+                          style={{ backgroundColor: layer.color, color: layer.color }} 
+                        />
+                        <input 
+                          type="color"
+                          value={layer.color}
+                          onChange={(e) => onUpdateColor(layer.type, e.target.value)}
+                          className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        />
+                      </div>
                       <span className="font-bold text-sm tracking-tight">{layer.name}</span>
                     </div>
                     <div className="flex items-center gap-1">

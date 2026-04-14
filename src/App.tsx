@@ -17,6 +17,7 @@ import EnergyInspector from './components/quantum/EnergyInspector';
 import AllEnergyViewer from './components/quantum/AllEnergyViewer';
 import CollisionLabOverlay from './components/quantum/CollisionLabOverlay';
 import ChainReactionLab from './components/quantum/ChainReactionLab';
+import QuantumFloatingButton from './components/quantum/QuantumFloatingButton';
 
 const MODES: { id: SimulationMode; label: string; icon: any; desc: string }[] = [
   { id: 'static', label: 'พลังงานคงที่', icon: <Zap size={18} />, desc: 'สนามพลังงานที่เสถียรและสงบ' },
@@ -52,12 +53,12 @@ const ENERGY_CATEGORIES = [
 const ENERGY_TYPES: EnergyInfo[] = [
   // Atomic Matter
   { id: 'atom', label: 'อะตอม', icon: <Atom size={16} />, color: '#00ffff', desc: 'หน่วยพื้นฐานของสสาร', category: 'atomic', mass: 10, charge: 0, speed: 1, stability: 0.9, heat: 300, volatility: 0.1, radiation: 0, magneticAffinity: 0.1, fluidity: 0.1, aggression: 0.1, absorption: 0.1, expansion: 0.1, collapseTendency: 0.1, resonance: 0.2, density: 1.0 },
-  { id: 'proton', label: 'โปรตอน', icon: <PlusCircle size={16} />, color: '#ff0000', desc: 'อนุภาคประจุบวก', category: 'atomic', mass: 5, charge: 1, speed: 2, stability: 1.0, heat: 500, volatility: 0.2, radiation: 0.1, magneticAffinity: 0.3, fluidity: 0.1, aggression: 0.2, absorption: 0.1, expansion: 0.1, collapseTendency: 0.1, resonance: 0.3, density: 1.5 },
-  { id: 'neutron', label: 'นิวตรอน', icon: <MinusCircle size={16} />, color: '#808080', desc: 'อนุภาคที่เป็นกลาง', category: 'atomic', mass: 5, charge: 0, speed: 2, stability: 1.0, heat: 500, volatility: 0.1, radiation: 0.2, magneticAffinity: 0.1, fluidity: 0.1, aggression: 0.1, absorption: 0.1, expansion: 0.1, collapseTendency: 0.1, resonance: 0.2, density: 1.5 },
-  { id: 'electron', label: 'อิเล็กตรอน', icon: <Zap size={16} />, color: '#ffff00', desc: 'อนุภาคประจุลบ', category: 'atomic', mass: 0.1, charge: -1, speed: 10, stability: 0.8, heat: 1000, volatility: 0.6, radiation: 0.3, magneticAffinity: 0.8, fluidity: 0.5, aggression: 0.4, absorption: 0.2, expansion: 0.3, collapseTendency: 0.2, resonance: 0.6, density: 0.1 },
-  { id: 'ion', label: 'ไอออน', icon: <CircleDashed size={16} />, color: '#adff2f', desc: 'อะตอมที่มีประจุ', category: 'atomic', mass: 10, charge: 2, speed: 3, stability: 0.7, heat: 800, volatility: 0.4, radiation: 0.2, magneticAffinity: 0.6, fluidity: 0.3, aggression: 0.3, absorption: 0.2, expansion: 0.2, collapseTendency: 0.2, resonance: 0.4, density: 1.2 },
-  { id: 'plasma-atom', label: 'อะตอมพลาสมา', icon: <Sun size={16} />, color: '#ffa500', desc: 'ก๊าซที่มีประจุไฟฟ้าสูง', category: 'atomic', mass: 8, charge: 3, speed: 5, stability: 0.5, heat: 5000, volatility: 0.8, radiation: 0.6, magneticAffinity: 0.7, fluidity: 0.8, aggression: 0.6, absorption: 0.4, expansion: 0.7, collapseTendency: 0.4, resonance: 0.7, density: 0.5 },
-  { id: 'radioactive-core', label: 'แกนกัมมันตรังสี', icon: <Activity size={16} />, color: '#32cd32', desc: 'แกนกลางที่ไม่เสถียร', category: 'atomic', mass: 20, charge: 0, speed: 1, stability: 0.2, heat: 2000, volatility: 0.9, radiation: 1.0, magneticAffinity: 0.2, fluidity: 0.1, aggression: 0.5, absorption: 0.3, expansion: 0.4, collapseTendency: 0.7, resonance: 0.5, density: 4.0 },
+  { id: 'proton', label: 'โปรตอน', icon: <PlusCircle size={16} />, color: '#ff3333', desc: 'อนุภาคประจุบวก', category: 'atomic', mass: 5, charge: 1, speed: 2, stability: 1.0, heat: 500, volatility: 0.2, radiation: 0.1, magneticAffinity: 0.3, fluidity: 0.1, aggression: 0.2, absorption: 0.1, expansion: 0.1, collapseTendency: 0.1, resonance: 0.3, density: 1.5 },
+  { id: 'neutron', label: 'นิวตรอน', icon: <MinusCircle size={16} />, color: '#a0a0a0', desc: 'อนุภาคที่เป็นกลาง', category: 'atomic', mass: 5, charge: 0, speed: 2, stability: 1.0, heat: 500, volatility: 0.1, radiation: 0.2, magneticAffinity: 0.1, fluidity: 0.1, aggression: 0.1, absorption: 0.1, expansion: 0.1, collapseTendency: 0.1, resonance: 0.2, density: 1.5 },
+  { id: 'electron', label: 'อิเล็กตรอน', icon: <Zap size={16} />, color: '#ffff33', desc: 'อนุภาคประจุลบ', category: 'atomic', mass: 0.1, charge: -1, speed: 10, stability: 0.8, heat: 1000, volatility: 0.6, radiation: 0.3, magneticAffinity: 0.8, fluidity: 0.5, aggression: 0.4, absorption: 0.2, expansion: 0.3, collapseTendency: 0.2, resonance: 0.6, density: 0.1 },
+  { id: 'ion', label: 'ไอออน', icon: <CircleDashed size={16} />, color: '#ccff00', desc: 'อะตอมที่มีประจุ', category: 'atomic', mass: 10, charge: 2, speed: 3, stability: 0.7, heat: 800, volatility: 0.4, radiation: 0.2, magneticAffinity: 0.6, fluidity: 0.3, aggression: 0.3, absorption: 0.2, expansion: 0.2, collapseTendency: 0.2, resonance: 0.4, density: 1.2 },
+  { id: 'plasma-atom', label: 'อะตอมพลาสมา', icon: <Sun size={16} />, color: '#ff9900', desc: 'ก๊าซที่มีประจุไฟฟ้าสูง', category: 'atomic', mass: 8, charge: 3, speed: 5, stability: 0.5, heat: 5000, volatility: 0.8, radiation: 0.6, magneticAffinity: 0.7, fluidity: 0.8, aggression: 0.6, absorption: 0.4, expansion: 0.7, collapseTendency: 0.4, resonance: 0.7, density: 0.5 },
+  { id: 'radioactive-core', label: 'แกนกัมมันตรังสี', icon: <Activity size={16} />, color: '#00ff00', desc: 'แกนกลางที่ไม่เสถียร', category: 'atomic', mass: 20, charge: 0, speed: 1, stability: 0.2, heat: 2000, volatility: 0.9, radiation: 1.0, magneticAffinity: 0.2, fluidity: 0.1, aggression: 0.5, absorption: 0.3, expansion: 0.4, collapseTendency: 0.7, resonance: 0.5, density: 4.0 },
 
   // Subatomic Particle
   { id: 'quark', label: 'ควาร์ก', icon: <Sparkles size={16} />, color: '#ff1493', desc: 'อนุภาคพื้นฐานของสสาร', category: 'subatomic', mass: 0.5, charge: 0.66, speed: 15, stability: 0.4, heat: 10000, volatility: 1.0, radiation: 0.5, magneticAffinity: 0.4, fluidity: 0.6, aggression: 0.7, absorption: 0.5, expansion: 0.5, collapseTendency: 0.6, resonance: 0.9, density: 0.2 },
@@ -178,6 +179,8 @@ export default function App() {
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(true);
   const [isQuantumWorld, setIsQuantumWorld] = useState(false);
   const [isQuantumModeOpen, setIsQuantumModeOpen] = useState(false);
+  const [customColors, setCustomColors] = useState<Record<string, string>>({});
+  const [selectedEnergyType, setSelectedEnergyType] = useState<string | null>(null);
   const [showChainReactionLab, setShowChainReactionLab] = useState(false);
   const [chainReactionConfig, setChainReactionConfig] = useState<ChainReactionConfig>({
     sensitivity: 0.5,
@@ -443,13 +446,42 @@ export default function App() {
     initParticles();
   }, [initParticles]);
 
+  const spawnEnergy = (type: string, count: number = 10) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const color = customColors[type] || ENERGY_TYPES.find(e => e.id === type)?.color || '#ffffff';
+    for (let i = 0; i < count; i++) {
+      const p = new Particle(canvas.width, canvas.height, type as ParticleType);
+      p.x = canvas.width / 2 + (Math.random() - 0.5) * 200;
+      p.y = canvas.height / 2 + (Math.random() - 0.5) * 200;
+      p.color = color;
+      particlesRef.current.push(p);
+    }
+    collisionEffectsRef.current.push(new CollisionEffect(canvas.width / 2, canvas.height / 2, 'explosion', color, config.highDefinition));
+  };
+
+  const updateEnergyColor = (type: string, color: string) => {
+    setCustomColors(prev => ({ ...prev, [type]: color }));
+    // Update existing particles
+    particlesRef.current.forEach(p => {
+      if (p.type === type) {
+        p.color = color;
+      }
+    });
+    // Update energy layers
+    setEnergyLayers(prev => prev.map(layer => 
+      layer.type === type ? { ...layer, color } : layer
+    ));
+  };
+
   // Reaction System
   const addEnergyLayer = (energy: EnergyInfo) => {
+    const color = customColors[energy.id] || energy.color;
     const newLayer: EnergyLayer = {
       id: Math.random().toString(36).substring(2, 11),
       type: energy.id,
       name: energy.label,
-      color: energy.color,
+      color: color,
       brightness: 1.0,
       size: 1.0,
       density: 1.0,
@@ -473,6 +505,7 @@ export default function App() {
       y: window.innerHeight / 2,
     };
     setEnergyLayers(prev => [...prev, newLayer]);
+    setSelectedEnergyType(energy.id);
     setIsEnergyLibraryOpen(false);
     setIsAllEnergyViewerOpen(false);
 
@@ -1278,6 +1311,29 @@ export default function App() {
           if (alive) effect.draw(ctx);
           return alive;
         });
+
+        // Draw Central Hero Orb in Quantum Mode
+        if (isQuantumModeOpen && selectedEnergyType) {
+          const energyInfo = ENERGY_TYPES.find(e => e.id === selectedEnergyType);
+          const heroP = new Particle(canvas.width, canvas.height, selectedEnergyType as any);
+          heroP.x = canvas.width / 2;
+          heroP.y = canvas.height / 2;
+          heroP.energy = 1.0;
+          heroP.baseSize = 80; // Even larger
+          heroP.color = customColors[selectedEnergyType] || energyInfo?.color || '#00ffff';
+          heroP.pulse = Date.now() * 0.002;
+          heroP.drawOrb(ctx, { glowLevel: 2.5 }, chainReactionConfig);
+          
+          // Draw "Selected" label
+          ctx.save();
+          ctx.font = 'bold 16px Outfit';
+          ctx.fillStyle = heroP.color;
+          ctx.textAlign = 'center';
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = heroP.color;
+          ctx.fillText('ACTIVE QUANTUM CORE', canvas.width / 2, canvas.height / 2 + 120);
+          ctx.restore();
+        }
 
         // Draw forces
         ctx.globalCompositeOperation = 'lighter';
@@ -2642,15 +2698,10 @@ export default function App() {
       </div>
 
       {/* Quantum Mode Toggle */}
-      <button
-        onClick={() => setIsQuantumModeOpen(true)}
-        className="fixed top-24 right-4 z-40 p-4 bg-cyan-500/20 hover:bg-cyan-500/40 border border-cyan-500/50 rounded-2xl text-cyan-400 font-black italic tracking-tighter shadow-[0_0_20px_rgba(0,255,255,0.2)] transition-all group"
-      >
-        <div className="flex items-center gap-2">
-          <Cpu className="group-hover:rotate-90 transition-transform" size={20} />
-          <span>QUANTUM</span>
-        </div>
-      </button>
+      <QuantumFloatingButton 
+        isOpen={isQuantumModeOpen}
+        onClick={() => setIsQuantumModeOpen(prev => !prev)}
+      />
 
       {/* Quantum Mode Overlays */}
       <QuantumOverlay 
@@ -2665,6 +2716,8 @@ export default function App() {
         onOpenAllViewer={() => setIsAllEnergyViewerOpen(true)}
         onOpenCollisionLab={() => setIsCollisionLabOpen(true)}
         onOpenChainReactionLab={() => setShowChainReactionLab(true)}
+        onSpawnEnergy={spawnEnergy}
+        onUpdateColor={updateEnergyColor}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
       />
@@ -2679,6 +2732,8 @@ export default function App() {
         onSearchChange={setSearchQuery}
         filterCategory={filterCategory}
         onFilterChange={setFilterCategory}
+        onUpdateColor={updateEnergyColor}
+        customColors={customColors}
       />
 
       <AllEnergyViewer 
