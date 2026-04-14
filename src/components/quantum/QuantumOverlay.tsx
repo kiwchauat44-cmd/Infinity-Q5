@@ -22,6 +22,7 @@ interface QuantumOverlayProps {
   onOpenAllViewer: () => void;
   onOpenCollisionLab: () => void;
   onOpenChainReactionLab: () => void;
+  onOpenChainSimulation: () => void;
   onSpawnEnergy: (type: string) => void;
   onUpdateColor: (type: string, color: string) => void;
   viewMode: string;
@@ -51,6 +52,7 @@ export default function QuantumOverlay({
   onOpenAllViewer,
   onOpenCollisionLab,
   onOpenChainReactionLab,
+  onOpenChainSimulation,
   onSpawnEnergy,
   onUpdateColor,
   viewMode,
@@ -120,6 +122,13 @@ export default function QuantumOverlay({
               >
                 <Activity size={18} className="text-cyan-400 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-bold text-cyan-100">Chain Reaction Lab</span>
+              </button>
+              <button 
+                onClick={onOpenChainSimulation}
+                className="flex items-center justify-center gap-2 p-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl transition-all group"
+              >
+                <Zap size={18} className="text-red-400 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-red-100 italic">NUCLEAR VISUAL LAB</span>
               </button>
             </div>
 

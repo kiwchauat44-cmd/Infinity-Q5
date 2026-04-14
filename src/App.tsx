@@ -18,6 +18,7 @@ import AllEnergyViewer from './components/quantum/AllEnergyViewer';
 import CollisionLabOverlay from './components/quantum/CollisionLabOverlay';
 import ChainReactionLab from './components/quantum/ChainReactionLab';
 import QuantumFloatingButton from './components/quantum/QuantumFloatingButton';
+import ChainReactionSimulationScreen from './components/quantum/ChainReactionSimulationScreen';
 
 const MODES: { id: SimulationMode; label: string; icon: any; desc: string }[] = [
   { id: 'static', label: 'พลังงานคงที่', icon: <Zap size={18} />, desc: 'สนามพลังงานที่เสถียรและสงบ' },
@@ -179,6 +180,7 @@ export default function App() {
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(true);
   const [isQuantumWorld, setIsQuantumWorld] = useState(false);
   const [isQuantumModeOpen, setIsQuantumModeOpen] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState<'main' | 'chain-reaction'>('main');
   const [customColors, setCustomColors] = useState<Record<string, string>>({});
   const [selectedEnergyType, setSelectedEnergyType] = useState<string | null>(null);
   const [showChainReactionLab, setShowChainReactionLab] = useState(false);
@@ -1987,6 +1989,14 @@ export default function App() {
     setOffset({ x: 0, y: 0 });
   };
 
+  if (currentScreen === 'chain-reaction') {
+    return (
+      <ChainReactionSimulationScreen 
+        onBack={() => setCurrentScreen('main')} 
+      />
+    );
+  }
+
   return (
     <div 
       className="relative w-full h-screen select-none outline-none overflow-hidden bg-[#05050a] touch-none interaction-layer"
@@ -2703,6 +2713,20 @@ export default function App() {
         onClick={() => setIsQuantumModeOpen(prev => !prev)}
       />
 
+      {/* Nuclear Visual Lab Toggle */}
+      <motion.button
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        onClick={() => setCurrentScreen('chain-reaction')}
+        className="fixed top-24 left-4 z-40 p-4 bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 rounded-2xl font-black italic tracking-tighter text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.2)] transition-all group"
+      >
+        <div className="flex items-center gap-2">
+          <Activity className="group-hover:animate-pulse" size={20} />
+          <span className="hidden md:inline">NUCLEAR VISUAL LAB</span>
+          <span className="md:hidden">LAB</span>
+        </div>
+      </motion.button>
+
       {/* Quantum Mode Overlays */}
       <QuantumOverlay 
         isOpen={isQuantumModeOpen}
@@ -2716,6 +2740,7 @@ export default function App() {
         onOpenAllViewer={() => setIsAllEnergyViewerOpen(true)}
         onOpenCollisionLab={() => setIsCollisionLabOpen(true)}
         onOpenChainReactionLab={() => setShowChainReactionLab(true)}
+        onOpenChainSimulation={() => setCurrentScreen('chain-reaction')}
         onSpawnEnergy={spawnEnergy}
         onUpdateColor={updateEnergyColor}
         viewMode={viewMode}
