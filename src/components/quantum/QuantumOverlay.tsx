@@ -21,6 +21,7 @@ interface QuantumOverlayProps {
   onOpenLibrary: () => void;
   onOpenAllViewer: () => void;
   onOpenCollisionLab: () => void;
+  onOpenChainReactionLab: () => void;
   viewMode: string;
   onViewModeChange: (mode: any) => void;
 }
@@ -47,6 +48,7 @@ export default function QuantumOverlay({
   onOpenLibrary,
   onOpenAllViewer,
   onOpenCollisionLab,
+  onOpenChainReactionLab,
   viewMode,
   onViewModeChange
 }: QuantumOverlayProps) {
@@ -108,9 +110,12 @@ export default function QuantumOverlay({
                 <Zap size={18} className="text-orange-400 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-bold text-orange-100">ห้องทดลองการชน</span>
               </button>
-              <button className="flex items-center justify-center gap-2 p-3 bg-white/5 border border-white/10 rounded-xl opacity-50 cursor-not-allowed">
-                <Sparkles size={18} className="text-white/40" />
-                <span className="text-xs font-bold text-white/40">บันทึกพรีเซ็ต</span>
+              <button 
+                onClick={onOpenChainReactionLab}
+                className="flex items-center justify-center gap-2 p-3 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 rounded-xl transition-all group"
+              >
+                <Activity size={18} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-cyan-100">Chain Reaction Lab</span>
               </button>
             </div>
           </motion.div>

@@ -1,5 +1,22 @@
 export type ParticleBehavior = 'static' | 'pulsate' | 'wander' | 'orbit';
 
+export type ChainReactionState = 'stable' | 'excited' | 'unstable' | 'split' | 'emission' | 'secondary-collision' | 'chain-expansion' | 'decay';
+
+export type MatterRole = 'fuel' | 'trigger' | 'amplifier' | 'absorber' | 'reflector' | 'stabilizer' | 'none';
+
+export interface ChainReactionConfig {
+  sensitivity: number;
+  instabilityThreshold: number;
+  emissionCount: number;
+  propagationRadius: number;
+  decayRate: number;
+  absorberStrength: number;
+  reflectorStrength: number;
+  visualIntensity: number;
+  autoChain: boolean;
+  viewMode: 'core' | 'particle' | 'path' | 'heat' | 'stability' | 'radiation';
+}
+
 export interface EnergyLayer {
   id: string;
   type: ForceType;
@@ -81,7 +98,9 @@ export type ParticleType =
   // Exotic
   | 'crystal' | 'liquid-metal' | 'toxic-gas' | 'radiation' | 'quantum-foam' | 'anti-matter' | 'energy-gel' | 'fractal' | 'quantum-matter' | 'bio-energy' | 'psionic' | 'mutating-matter'
   // Physical
-  | 'thermal' | 'magnetic' | 'sound-wave' | 'pressure' | 'gravity' | 'shockwave';
+  | 'thermal' | 'magnetic' | 'sound-wave' | 'pressure' | 'gravity' | 'shockwave'
+  // Chain Reaction
+  | 'neutron-matter' | 'atomic-core' | 'heavy-matter' | 'quantum-core' | 'radiant-core';
 
 export type ForceType = 
   | 'attractor' | 'repulsor' | 'vortex' | 'dispersion' | 'central' | 'electric' | 'nuclear' | 'atomic' | 'matter' | 'cosmic' | 'universal' | 'field' | 'transform' | 'light-atom' | 'heavy-atom' | 'neutral' | 'dark-matter' | 'quark' | 'antimatter' | 'plasma' | 'void' | 'gravity-wave' | 'photon'
@@ -98,7 +117,9 @@ export type ForceType =
   // Exotic
   | 'crystal' | 'liquid-metal' | 'toxic-gas' | 'radiation' | 'quantum-foam' | 'anti-matter' | 'energy-gel' | 'fractal' | 'quantum-matter' | 'bio-energy' | 'psionic' | 'mutating-matter'
   // Physical
-  | 'thermal' | 'magnetic' | 'sound-wave' | 'pressure' | 'gravity' | 'shockwave';
+  | 'thermal' | 'magnetic' | 'sound-wave' | 'pressure' | 'gravity' | 'shockwave'
+  // Chain Reaction
+  | 'neutron-matter' | 'atomic-core' | 'heavy-matter' | 'quantum-core' | 'radiant-core';
 
 export type SimulationMode = 'static' | 'chaos' | 'aggregation' | 'explosion' | 'vortex' | 'transformation' | 'big-bang' | 'neural-network' | 'zoom' | 'pan' | 'spawn-particle' | 'black-hole' | 'supernova' | 'nebula' | 'galaxy' | 'wormhole' | 'pulsar' | 'dark-energy' | 'quantum';
 
@@ -787,6 +808,17 @@ export class Particle {
   resonance: number = 0.1;
   density: number = 1.0;
 
+  // Chain Reaction Properties
+  chainState: ChainReactionState = 'stable';
+  matterRole: MatterRole = 'none';
+  instability: number = 0;
+  chainSensitivity: number = 0.5;
+  lastCollisionTime: number = 0;
+  isSubParticle: boolean = false;
+  parentCoreId: string | null = null;
+  crackLight: number = 0;
+  afterglow: number = 0;
+
   pulse: number;
   id: string;
   quantumState: QuantumState;
@@ -813,12 +845,56 @@ export class Particle {
     this.initTypeProps();
   }
 
-  drawOrb(ctx: CanvasRenderingContext2D, config: any) {
+  drawOrb(ctx: CanvasRenderingContext2D, config: any, chainConfig?: any) {
     const twinkle = Math.sin(this.pulse) * 0.2 + 0.8;
     const glowIntensity = config.glowLevel * (0.5 + this.energy * 0.5) * twinkle;
+    const viewMode = chainConfig?.viewMode || 'core';
     
     ctx.save();
     ctx.translate(this.x, this.y);
+
+    // View Mode: Stability
+    if (viewMode === 'stability') {
+      ctx.strokeStyle = this.instability > 0.6 ? '#ff0000' : '#00ff00';
+      ctx.lineWidth = 1;
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.size * 2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // View Mode: Heat
+    if (viewMode === 'heat') {
+      const heatColor = `hsla(${20 - this.instability * 20}, 100%, 50%, 0.5)`;
+      ctx.fillStyle = heatColor;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.size * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // View Mode: Radiation
+    if (viewMode === 'radiation' && this.matterRole === 'fuel') {
+      const radGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 5);
+      radGrad.addColorStop(0, 'rgba(0, 255, 0, 0.2)');
+      radGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = radGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.size * 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // View Mode: Particle
+    if (viewMode === 'particle' && this.isSubParticle) {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#ffffff';
+    }
+
+    // Shaking effect for unstable states
+    if (this.chainState === 'excited' || this.chainState === 'unstable') {
+      const shakeIntensity = this.chainState === 'unstable' ? 5 : 2;
+      ctx.translate((Math.random() - 0.5) * shakeIntensity, (Math.random() - 0.5) * shakeIntensity);
+    }
+
     ctx.globalCompositeOperation = 'lighter';
 
     // 1. Outer Aura (Glowing Fog)
@@ -868,15 +944,43 @@ export class Particle {
     }
 
     // 4. Core Glow (Intense Sphere)
+    let coreColor = `hsla(${this.hue}, 100%, 80%, 1)`;
+    if (this.chainState === 'excited') coreColor = '#ffff00';
+    if (this.chainState === 'unstable') coreColor = '#ff4500';
+    if (this.chainState === 'split') coreColor = '#ffffff';
+
     const coreGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size);
     coreGrad.addColorStop(0, '#ffffff');
-    coreGrad.addColorStop(0.3, `hsla(${this.hue}, 100%, 80%, 1)`);
+    coreGrad.addColorStop(0.3, coreColor);
     coreGrad.addColorStop(0.7, `hsla(${this.hue}, 100%, 50%, 0.8)`);
     coreGrad.addColorStop(1, `hsla(${this.hue}, 100%, 30%, 0.5)`);
     ctx.fillStyle = coreGrad;
     ctx.beginPath();
     ctx.arc(0, 0, this.size, 0, Math.PI * 2);
     ctx.fill();
+
+    // 4.1 Crack Light (Internal cracks)
+    if (this.crackLight > 0) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = this.crackLight;
+      for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2 + Date.now() * 0.01;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(angle) * this.size, Math.sin(angle) * this.size);
+        ctx.stroke();
+      }
+    }
+
+    // 4.2 Afterglow
+    if (this.afterglow > 0) {
+      ctx.globalAlpha = this.afterglow * 0.3;
+      ctx.fillStyle = this.color;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.size * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     // 5. Particle Trails (Internal movement)
     if (this.fluidity > 0.4) {
@@ -939,6 +1043,47 @@ export class Particle {
     this.density = 1.0;
 
     switch (this.type) {
+      case 'radiant-core':
+        this.mass = 5;
+        this.restitution = 0.3;
+        this.baseSize = 5;
+        this.hue = 60;
+        this.radiation = 1.0;
+        this.matterRole = 'trigger';
+        this.chainSensitivity = 0.9;
+        break;
+      case 'neutron-matter':
+        this.mass = 50;
+        this.restitution = 0.6;
+        this.baseSize = 3;
+        this.hue = 200;
+        this.matterRole = 'fuel';
+        this.chainSensitivity = 0.7;
+        break;
+      case 'atomic-core':
+        this.mass = 100;
+        this.restitution = 0.4;
+        this.baseSize = 6;
+        this.hue = 0;
+        this.matterRole = 'fuel';
+        this.chainSensitivity = 0.8;
+        break;
+      case 'heavy-matter':
+        this.mass = 200;
+        this.restitution = 0.2;
+        this.baseSize = 8;
+        this.hue = 220;
+        this.matterRole = 'fuel';
+        this.chainSensitivity = 0.5;
+        break;
+      case 'quantum-core':
+        this.mass = 10;
+        this.restitution = 0.5;
+        this.baseSize = 4;
+        this.hue = 180;
+        this.matterRole = 'amplifier';
+        this.chainSensitivity = 0.9;
+        break;
       case 'energy':
         this.mass = 0.5;
         this.restitution = 0.9;
@@ -1183,6 +1328,26 @@ export class Particle {
     const effectiveFriction = friction + (this.density - 1) * 0.005;
     this.vx *= Math.min(0.999, effectiveFriction);
     this.vy *= Math.min(0.999, effectiveFriction);
+
+    // Chain Reaction Logic
+    if (this.chainState !== 'stable') {
+      this.instability -= config.decayRate || 0.01;
+      this.crackLight = Math.max(0, this.crackLight - 0.02);
+      this.afterglow = Math.max(0, this.afterglow - 0.01);
+
+      if (this.instability < 0.2) {
+        this.chainState = 'decay';
+        if (this.instability <= 0) {
+          this.chainState = 'stable';
+          this.instability = 0;
+        }
+      } else if (this.instability > 0.8) {
+        this.chainState = 'unstable';
+        this.crackLight = Math.min(1, this.crackLight + 0.05);
+      } else if (this.instability > 0.4) {
+        this.chainState = 'excited';
+      }
+    }
 
     // Mode specific behaviors
     modes.forEach(mode => {
@@ -1483,10 +1648,23 @@ export class Particle {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D, config: any, modes: SimulationMode[] = [], quantumSettings: any = {}) {
+  draw(ctx: CanvasRenderingContext2D, config: any, modes: SimulationMode[] = [], quantumSettings: any = {}, chainConfig?: any) {
     if (modes.includes('quantum')) {
-      this.drawOrb(ctx, config);
+      this.drawOrb(ctx, config, chainConfig);
       
+      // View Mode: Path
+      if (chainConfig?.viewMode === 'path' && this.isSubParticle) {
+        ctx.save();
+        ctx.strokeStyle = this.color;
+        ctx.globalAlpha = 0.4;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - this.vx * 3, this.y - this.vy * 3);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       // Add quantum-specific overlays if needed
       if (quantumSettings.isQuantumEnergyView) {
         // ... existing quantum energy view logic ...

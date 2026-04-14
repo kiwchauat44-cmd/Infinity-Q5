@@ -9,13 +9,14 @@ import {
   Mountain, Snowflake, Moon, Thermometer, Volume2, ArrowDownCircle,
   PlusCircle, MinusCircle, Star as StarIcon, Droplets, Gem, Skull, Heart, Brain, Cloud
 } from 'lucide-react';
-import { Particle, Player, Force, ForceType, SimulationMode, ParticleType, Star, CollisionEffect, CollisionEffectType, CollisionResult, EnergyLayer, Reaction, EnergyInfo } from './types';
+import { Particle, Player, Force, ForceType, SimulationMode, ParticleType, Star, CollisionEffect, CollisionEffectType, CollisionResult, EnergyLayer, Reaction, EnergyInfo, ChainReactionConfig } from './types';
 import QuantumWorld from './components/quantum/QuantumWorld';
 import QuantumOverlay from './components/quantum/QuantumOverlay';
 import EnergyLibrarySidebar from './components/quantum/EnergyLibrarySidebar';
 import EnergyInspector from './components/quantum/EnergyInspector';
 import AllEnergyViewer from './components/quantum/AllEnergyViewer';
 import CollisionLabOverlay from './components/quantum/CollisionLabOverlay';
+import ChainReactionLab from './components/quantum/ChainReactionLab';
 
 const MODES: { id: SimulationMode; label: string; icon: any; desc: string }[] = [
   { id: 'static', label: 'พลังงานคงที่', icon: <Zap size={18} />, desc: 'สนามพลังงานที่เสถียรและสงบ' },
@@ -115,6 +116,13 @@ const ENERGY_TYPES: EnergyInfo[] = [
   { id: 'pressure', label: 'แรงดัน', icon: <ArrowDownCircle size={16} />, color: '#708090', desc: 'แรงกระทำต่อพื้นที่', category: 'atomic', mass: 5, charge: 0, speed: 2, stability: 0.9, heat: 50, volatility: 0.3, radiation: 0.1, magneticAffinity: 0.2, fluidity: 0.3, aggression: 0.5, absorption: 0.2, expansion: 0.1, collapseTendency: 0.6, resonance: 0.4, density: 5.0 },
   { id: 'gravity', label: 'แรงโน้มถ่วง', icon: <CircleDashed size={16} />, color: '#483d8b', desc: 'แรงดึงดูดระหว่างมวล', category: 'cosmic', mass: 100, charge: 0, speed: 0, stability: 1.0, heat: 0, volatility: 0.1, radiation: 0.1, magneticAffinity: 0.2, fluidity: 0.1, aggression: 0.1, absorption: 1.0, expansion: 0.1, collapseTendency: 0.9, resonance: 0.5, density: 50.0 },
   { id: 'shockwave', label: 'คลื่นกระแทก', icon: <Zap size={16} />, color: '#ff6347', desc: 'การเปลี่ยนแปลงความดันอย่างรวดเร็ว', category: 'elemental', mass: 0.5, charge: 0, speed: 25, stability: 0.3, heat: 500, volatility: 0.9, radiation: 0.2, magneticAffinity: 0.1, fluidity: 0.8, aggression: 0.9, absorption: 0.1, expansion: 1.0, collapseTendency: 0.1, resonance: 0.7, density: 0.5 },
+
+  // Chain Reaction Energies
+  { id: 'neutron-matter', label: 'สสารนิวตรอน', icon: <Database size={16} />, color: '#b0c4de', desc: 'สสารความหนาแน่นสูงที่ปล่อยนิวตรอน', category: 'exotic', mass: 50, charge: 0, speed: 1, stability: 0.8, heat: 100, volatility: 0.2, radiation: 0.5, magneticAffinity: 0.1, fluidity: 0.1, aggression: 0.1, absorption: 0.1, expansion: 0.1, collapseTendency: 0.1, resonance: 0.2, density: 10.0 },
+  { id: 'atomic-core', label: 'แกนอะตอม', icon: <Atom size={16} />, color: '#ff6347', desc: 'แกนกลางอะตอมที่พร้อมแตกตัว', category: 'atomic', mass: 100, charge: 10, speed: 0.5, stability: 0.6, heat: 500, volatility: 0.4, radiation: 0.6, magneticAffinity: 0.3, fluidity: 0.1, aggression: 0.2, absorption: 0.3, expansion: 0.2, collapseTendency: 0.4, resonance: 0.5, density: 20.0 },
+  { id: 'heavy-matter', label: 'สสารหนัก', icon: <Database size={16} />, color: '#4682b4', desc: 'สสารมวลมากที่สะสมพลังงาน', category: 'exotic', mass: 200, charge: 0, speed: 0.2, stability: 0.9, heat: 50, volatility: 0.1, radiation: 0.2, magneticAffinity: 0.1, fluidity: 0.05, aggression: 0.1, absorption: 0.5, expansion: 0.1, collapseTendency: 0.2, resonance: 0.3, density: 50.0 },
+  { id: 'quantum-core', label: 'แกนควอนตัม', icon: <Cpu size={16} />, color: '#00ced1', desc: 'แกนกลางที่ขยายปฏิกิริยา', category: 'subatomic', mass: 10, charge: 0, speed: 5, stability: 0.4, heat: 1000, volatility: 0.7, radiation: 0.4, magneticAffinity: 0.5, fluidity: 0.8, aggression: 0.6, absorption: 0.4, expansion: 0.8, collapseTendency: 0.5, resonance: 0.9, density: 1.0 },
+  { id: 'radiant-core', label: 'แกนรังสี', icon: <Zap size={16} />, color: '#adff2f', desc: 'แกนกลางที่กระตุ้นปฏิกิริยา', category: 'exotic', mass: 5, charge: 5, speed: 10, stability: 0.3, heat: 2000, volatility: 0.9, radiation: 1.0, magneticAffinity: 0.2, fluidity: 0.5, aggression: 0.8, absorption: 0.2, expansion: 0.6, collapseTendency: 0.7, resonance: 0.7, density: 0.5 },
 ];
 
 const REACTIONS: Reaction[] = [
@@ -170,6 +178,19 @@ export default function App() {
   const [isTopMenuOpen, setIsTopMenuOpen] = useState(true);
   const [isQuantumWorld, setIsQuantumWorld] = useState(false);
   const [isQuantumModeOpen, setIsQuantumModeOpen] = useState(false);
+  const [showChainReactionLab, setShowChainReactionLab] = useState(false);
+  const [chainReactionConfig, setChainReactionConfig] = useState<ChainReactionConfig>({
+    sensitivity: 0.5,
+    instabilityThreshold: 0.6,
+    emissionCount: 3,
+    propagationRadius: 150,
+    decayRate: 0.05,
+    absorberStrength: 0.5,
+    reflectorStrength: 0.5,
+    visualIntensity: 0.8,
+    autoChain: true,
+    viewMode: 'core'
+  });
   const [energyLayers, setEnergyLayers] = useState<EnergyLayer[]>([]);
   const [activeInspectorEnergy, setActiveInspectorEnergy] = useState<EnergyLayer | null>(null);
   const [isEnergyLibraryOpen, setIsEnergyLibraryOpen] = useState(false);
@@ -1142,8 +1163,98 @@ export default function App() {
             }
           }
 
-          p.draw(ctx, config, modes, quantumSettings);
+          p.draw(ctx, config, modes, quantumSettings, chainReactionConfig);
           
+          // Chain Reaction Propagation
+          if (chainReactionConfig.autoChain) {
+            // Matter Role Logic
+            if (p.matterRole === 'absorber') {
+              particlesRef.current.forEach(other => {
+                if (other === p) return;
+                const dx = other.x - p.x;
+                const dy = other.y - p.y;
+                const distSq = dx * dx + dy * dy;
+                const influenceDist = 100;
+                if (distSq < influenceDist * influenceDist) {
+                  other.instability = Math.max(0, other.instability - 0.01 * chainReactionConfig.absorberStrength);
+                }
+              });
+            }
+
+            if (p.matterRole === 'reflector') {
+              particlesRef.current.forEach(other => {
+                if (other.isSubParticle) {
+                  const dx = other.x - p.x;
+                  const dy = other.y - p.y;
+                  const distSq = dx * dx + dy * dy;
+                  const reflectDist = p.size + other.size + 10;
+                  if (distSq < reflectDist * reflectDist) {
+                    const dist = Math.sqrt(distSq);
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    const dot = other.vx * nx + other.vy * ny;
+                    other.vx -= 2 * dot * nx * chainReactionConfig.reflectorStrength;
+                    other.vy -= 2 * dot * ny * chainReactionConfig.reflectorStrength;
+                  }
+                }
+              });
+            }
+
+            if (p.chainState === 'unstable' && Math.random() < 0.05) {
+              p.chainState = 'split';
+              p.afterglow = 1.0;
+              
+              // Spawn sub-particles
+              const count = chainReactionConfig.emissionCount;
+              for (let i = 0; i < count; i++) {
+                const sub = new Particle(canvas.width, canvas.height, 'neutron-matter');
+                sub.x = p.x;
+                sub.y = p.y;
+                const angle = (i / count) * Math.PI * 2 + Math.random();
+                const speed = 5 + Math.random() * 5;
+                sub.vx = Math.cos(angle) * speed;
+                sub.vy = Math.sin(angle) * speed;
+                sub.isSubParticle = true;
+                sub.parentCoreId = p.id;
+                sub.life = 0.8;
+                particlesRef.current.push(sub);
+              }
+              
+              collisionEffectsRef.current.push(new CollisionEffect(p.x, p.y, 'burst', p.color, config.highDefinition));
+              shakeRef.current = Math.max(shakeRef.current, 10);
+            }
+            
+            // Sub-particles triggering others
+            if (p.isSubParticle) {
+              particlesRef.current.forEach(other => {
+                if (other === p || other.isSubParticle) return;
+                const dx = other.x - p.x;
+                const dy = other.y - p.y;
+                const distSq = dx * dx + dy * dy;
+                const triggerDist = chainReactionConfig.propagationRadius;
+                
+                if (distSq < triggerDist * triggerDist) {
+                  const sensitivity = other.chainSensitivity * chainReactionConfig.sensitivity;
+                  if (Math.random() < sensitivity * 0.1) {
+                    other.instability = Math.min(1, other.instability + 0.3);
+                    other.chainState = 'excited';
+                    
+                    // Visual link
+                    ctx.save();
+                    ctx.strokeStyle = p.color;
+                    ctx.globalAlpha = 0.3;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(other.x, other.y);
+                    ctx.stroke();
+                    ctx.restore();
+                  }
+                }
+              });
+            }
+          }
+
           // Draw Entanglement Lines
           if (modes.includes('quantum') && quantumSettings.showEntanglement && p.quantumState.entangledWith) {
             const other = particlesRef.current.find(op => op.id === p.quantumState.entangledWith);
@@ -2026,6 +2137,25 @@ export default function App() {
     >
       <canvas ref={canvasRef} className="absolute inset-0 block" />
 
+      <ChainReactionLab 
+        isOpen={showChainReactionLab}
+        onClose={() => setShowChainReactionLab(false)}
+        config={chainReactionConfig}
+        onChange={setChainReactionConfig}
+        onReset={() => setChainReactionConfig({
+          sensitivity: 0.5,
+          instabilityThreshold: 0.6,
+          emissionCount: 3,
+          propagationRadius: 150,
+          decayRate: 0.05,
+          absorberStrength: 0.5,
+          reflectorStrength: 0.5,
+          visualIntensity: 0.8,
+          autoChain: true,
+          viewMode: 'core'
+        })}
+      />
+
       {/* Charge Bar */}
       <AnimatePresence>
         {charge > 0 && (
@@ -2534,6 +2664,7 @@ export default function App() {
         onOpenLibrary={() => setIsEnergyLibraryOpen(true)}
         onOpenAllViewer={() => setIsAllEnergyViewerOpen(true)}
         onOpenCollisionLab={() => setIsCollisionLabOpen(true)}
+        onOpenChainReactionLab={() => setShowChainReactionLab(true)}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
       />
