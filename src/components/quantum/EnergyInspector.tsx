@@ -20,6 +20,17 @@ export default function EnergyInspector({ energy, onClose, energyInfo }: EnergyI
     { label: 'ความเร็ว', value: energyInfo.speed, unit: 'c', icon: <Activity size={14} /> },
   ];
 
+  const physicalProps = [
+    { label: 'ความผันผวน', value: energyInfo.volatility, color: 'text-orange-400' },
+    { label: 'การแผ่รังสี', value: energyInfo.radiation, color: 'text-green-400' },
+    { label: 'แรงดึงดูดแม่เหล็ก', value: energyInfo.magneticAffinity, color: 'text-blue-400' },
+    { label: 'ความไหลลื่น', value: energyInfo.fluidity, color: 'text-cyan-400' },
+    { label: 'ความก้าวร้าว', value: energyInfo.aggression, color: 'text-red-400' },
+    { label: 'การดูดซับ', value: energyInfo.absorption, color: 'text-purple-400' },
+    { label: 'การขยายตัว', value: energyInfo.expansion, color: 'text-yellow-400' },
+    { label: 'ความหนาแน่น', value: energyInfo.density, color: 'text-gray-400' },
+  ];
+
   return (
     <AnimatePresence>
       {energy && (
@@ -27,9 +38,9 @@ export default function EnergyInspector({ energy, onClose, energyInfo }: EnergyI
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="fixed bottom-24 left-4 right-4 md:left-auto md:right-8 md:w-96 z-[80] bg-black/80 backdrop-blur-2xl border border-cyan-500/40 rounded-3xl p-6 shadow-[0_0_50px_rgba(0,255,255,0.2)]"
+          className="fixed bottom-24 left-4 right-4 md:left-auto md:right-8 md:w-96 z-[80] bg-black/90 backdrop-blur-2xl border border-cyan-500/40 rounded-3xl p-6 shadow-[0_0_50px_rgba(0,255,255,0.2)] overflow-y-auto max-h-[80vh]"
         >
-          <div className="flex items-start justify-between mb-6">
+          <div className="flex items-start justify-between mb-6 sticky top-0 bg-black/10 backdrop-blur-sm py-2 z-10">
             <div className="flex items-center gap-4">
               <div 
                 className="p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30"
@@ -61,6 +72,30 @@ export default function EnergyInspector({ energy, onClose, energyInfo }: EnergyI
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="space-y-4 mb-6">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-2">
+              <Activity size={12} />
+              คุณสมบัติทางกายภาพ (PHYSICAL PROPERTIES)
+            </h4>
+            <div className="grid grid-cols-1 gap-3">
+              {physicalProps.map((prop, i) => (
+                <div key={i} className="space-y-1">
+                  <div className="flex justify-between text-[10px] font-bold uppercase">
+                    <span className="text-white/60">{prop.label}</span>
+                    <span className={prop.color}>{Math.round(prop.value * 100)}%</span>
+                  </div>
+                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${prop.value * 100}%` }}
+                      className={`h-full bg-current ${prop.color}`}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-4">

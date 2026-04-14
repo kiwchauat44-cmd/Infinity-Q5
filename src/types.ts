@@ -1,3 +1,5 @@
+export type ParticleBehavior = 'static' | 'pulsate' | 'wander' | 'orbit';
+
 export interface EnergyLayer {
   id: string;
   type: ForceType;
@@ -7,10 +9,19 @@ export interface EnergyLayer {
   size: number;
   density: number;
   particleCount: number;
-  behavior: 'static' | 'pulsate' | 'wander' | 'orbit';
+  behavior: ParticleBehavior;
   stability: number;
   heat: number;
   charge: number;
+  volatility: number;
+  radiation: number;
+  magneticAffinity: number;
+  fluidity: number;
+  aggression: number;
+  absorption: number;
+  expansion: number;
+  collapseTendency: number;
+  resonance: number;
   isVisible: boolean;
   isLocked: boolean;
   x: number;
@@ -36,6 +47,16 @@ export interface EnergyInfo {
   speed: number;
   stability: number;
   heat: number;
+  volatility: number;
+  radiation: number;
+  magneticAffinity: number;
+  fluidity: number;
+  aggression: number;
+  absorption: number;
+  expansion: number;
+  collapseTendency: number;
+  resonance: number;
+  density: number;
 }
 
 export interface Player {
@@ -754,6 +775,18 @@ export class Particle {
   hue: number;
   isSoundWaveInfluenced: boolean = false;
 
+  // New Physical Properties
+  volatility: number = 0.5;
+  radiation: number = 0;
+  magneticAffinity: number = 0;
+  fluidity: number = 0.5;
+  aggression: number = 0.1;
+  absorption: number = 0.1;
+  expansion: number = 0.1;
+  collapseTendency: number = 0.1;
+  resonance: number = 0.1;
+  density: number = 1.0;
+
   pulse: number;
   id: string;
   quantumState: QuantumState;
@@ -780,6 +813,100 @@ export class Particle {
     this.initTypeProps();
   }
 
+  drawOrb(ctx: CanvasRenderingContext2D, config: any) {
+    const twinkle = Math.sin(this.pulse) * 0.2 + 0.8;
+    const glowIntensity = config.glowLevel * (0.5 + this.energy * 0.5) * twinkle;
+    
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.globalCompositeOperation = 'lighter';
+
+    // 1. Outer Aura (Glowing Fog)
+    const auraRadius = this.size * (4 + this.expansion * 10);
+    const auraGrad = ctx.createRadialGradient(0, 0, this.size, 0, 0, auraRadius);
+    auraGrad.addColorStop(0, `hsla(${this.hue}, 100%, 50%, ${0.3 * glowIntensity})`);
+    auraGrad.addColorStop(0.5, `hsla(${this.hue}, 100%, 40%, ${0.1 * glowIntensity})`);
+    auraGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = auraGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, auraRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Heat Distortion (Subtle ripple)
+    if (this.volatility > 0.6) {
+      ctx.strokeStyle = `hsla(${this.hue}, 100%, 70%, 0.1)`;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 3; i++) {
+        const r = auraRadius * (0.5 + i * 0.2) + Math.sin(Date.now() * 0.005 + i) * 5;
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // 3. Charge Rings / Orbiting Particles
+    if (this.magneticAffinity > 0.5 || this.type === 'electric' || this.type === 'lightning') {
+      ctx.strokeStyle = `hsla(${(this.hue + 180) % 360}, 100%, 80%, 0.4)`;
+      ctx.lineWidth = 1.5;
+      const ringCount = 2;
+      for (let i = 0; i < ringCount; i++) {
+        ctx.save();
+        ctx.rotate(this.pulse * (i + 1) * 0.5);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.size * 2.5, this.size * 0.8, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Small orbiting spark
+        const sparkX = Math.cos(this.pulse * 2) * this.size * 2.5;
+        const sparkY = Math.sin(this.pulse * 2) * this.size * 0.8;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(sparkX, sparkY, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    // 4. Core Glow (Intense Sphere)
+    const coreGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size);
+    coreGrad.addColorStop(0, '#ffffff');
+    coreGrad.addColorStop(0.3, `hsla(${this.hue}, 100%, 80%, 1)`);
+    coreGrad.addColorStop(0.7, `hsla(${this.hue}, 100%, 50%, 0.8)`);
+    coreGrad.addColorStop(1, `hsla(${this.hue}, 100%, 30%, 0.5)`);
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 5. Particle Trails (Internal movement)
+    if (this.fluidity > 0.4) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.globalAlpha = 0.3;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) {
+        const angle = this.pulse + (i * Math.PI * 2) / 5;
+        const r = this.size * 0.7;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+        ctx.lineTo(Math.cos(angle + 0.5) * r * 0.8, Math.sin(angle + 0.5) * r * 0.8);
+        ctx.stroke();
+      }
+    }
+
+    // 6. Radiation / Pulse Rings
+    if (this.radiation > 0.3) {
+      const ringAlpha = (1 - (Date.now() % 1000) / 1000) * this.radiation;
+      const ringRadius = this.size * (1 + (Date.now() % 1000) / 200);
+      ctx.strokeStyle = `hsla(${this.hue}, 100%, 70%, ${ringAlpha})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+
   public getRandomType(): ParticleType {
     const r = Math.random();
     if (r < 0.1) return 'energy';
@@ -799,18 +926,33 @@ export class Particle {
   }
 
   initTypeProps() {
+    // Default values
+    this.volatility = 0.5;
+    this.radiation = 0;
+    this.magneticAffinity = 0;
+    this.fluidity = 0.5;
+    this.aggression = 0.1;
+    this.absorption = 0.1;
+    this.expansion = 0.1;
+    this.collapseTendency = 0.1;
+    this.resonance = 0.1;
+    this.density = 1.0;
+
     switch (this.type) {
       case 'energy':
         this.mass = 0.5;
         this.restitution = 0.9;
         this.baseSize = 1 + Math.random();
         this.hue = 60; // Yellow
+        this.volatility = 0.7;
+        this.expansion = 0.4;
         break;
       case 'matter':
         this.mass = 2;
         this.restitution = 0.7;
         this.baseSize = 2 + Math.random();
         this.hue = 200; // Blue
+        this.density = 2.0;
         break;
       case 'electric':
       case 'electron':
@@ -818,6 +960,8 @@ export class Particle {
         this.restitution = 0.95;
         this.baseSize = 1.2;
         this.hue = 180; // Cyan
+        this.magneticAffinity = 0.8;
+        this.volatility = 0.6;
         break;
       case 'nuclear':
       case 'supernova':
@@ -825,6 +969,9 @@ export class Particle {
         this.restitution = 0.4;
         this.baseSize = 4;
         this.hue = 30; // Orange
+        this.radiation = 0.9;
+        this.volatility = 0.9;
+        this.expansion = 0.8;
         break;
       case 'cosmic':
       case 'cosmic-ray':
@@ -832,6 +979,7 @@ export class Particle {
         this.restitution = 0.8;
         this.baseSize = 2;
         this.hue = 280; // Purple
+        this.resonance = 0.7;
         break;
       case 'universal':
       case 'black-hole':
@@ -839,6 +987,9 @@ export class Particle {
         this.restitution = 0.3;
         this.baseSize = 6;
         this.hue = 340; // Pink/Red
+        this.absorption = 1.0;
+        this.collapseTendency = 0.9;
+        this.density = 5.0;
         break;
       case 'light-atom':
       case 'photon':
@@ -847,6 +998,7 @@ export class Particle {
         this.restitution = 0.99;
         this.baseSize = 1.5;
         this.hue = 60; // Light Yellow
+        this.fluidity = 0.9;
         break;
       case 'heavy-atom':
       case 'proton':
@@ -854,6 +1006,7 @@ export class Particle {
         this.restitution = 0.5;
         this.baseSize = 5.5;
         this.hue = 210; // Deep Blue
+        this.density = 3.0;
         break;
       case 'neutral':
       case 'neutron':
@@ -868,12 +1021,15 @@ export class Particle {
         this.restitution = 0.1;
         this.baseSize = 3;
         this.hue = 260; // Deep Indigo
+        this.absorption = 0.8;
+        this.density = 10.0;
         break;
       case 'quark':
         this.mass = 0.1;
         this.restitution = 0.98;
         this.baseSize = 1;
         this.hue = Math.random() * 360;
+        this.volatility = 1.0;
         break;
       case 'fire':
       case 'thermal':
@@ -882,6 +1038,9 @@ export class Particle {
         this.restitution = 0.8;
         this.baseSize = 2.5;
         this.hue = 15; // Red-Orange
+        this.volatility = 0.8;
+        this.radiation = 0.4;
+        this.expansion = 0.6;
         break;
       case 'water':
       case 'ice':
@@ -890,6 +1049,7 @@ export class Particle {
         this.restitution = 0.6;
         this.baseSize = 2.2;
         this.hue = 200; // Sky Blue
+        this.fluidity = 0.9;
         break;
       case 'wind':
       case 'sound-wave':
@@ -898,6 +1058,8 @@ export class Particle {
         this.restitution = 0.9;
         this.baseSize = 1.5;
         this.hue = 160; // Mint
+        this.fluidity = 0.8;
+        this.expansion = 0.5;
         break;
       case 'earth':
       case 'pressure':
@@ -906,6 +1068,7 @@ export class Particle {
         this.restitution = 0.3;
         this.baseSize = 3.5;
         this.hue = 40; // Brown/Gold
+        this.density = 4.0;
         break;
       case 'lightning':
       case 'plasma':
@@ -914,6 +1077,8 @@ export class Particle {
         this.restitution = 0.95;
         this.baseSize = 1.8;
         this.hue = 280; // Violet
+        this.magneticAffinity = 0.9;
+        this.volatility = 0.9;
         break;
       case 'magnetic':
       case 'liquid-metal':
@@ -921,6 +1086,8 @@ export class Particle {
         this.restitution = 0.5;
         this.baseSize = 3;
         this.hue = 220; // Steel Blue
+        this.magneticAffinity = 1.0;
+        this.fluidity = 0.7;
         break;
       case 'gravity':
       case 'stellar':
@@ -928,6 +1095,8 @@ export class Particle {
         this.restitution = 0.2;
         this.baseSize = 5;
         this.hue = 50; // Golden
+        this.absorption = 0.6;
+        this.collapseTendency = 0.5;
         break;
       case 'shockwave':
       case 'radiation':
@@ -936,6 +1105,8 @@ export class Particle {
         this.restitution = 0.7;
         this.baseSize = 2.8;
         this.hue = 100; // Lime/Toxic Green
+        this.radiation = 0.8;
+        this.volatility = 0.6;
         break;
       case 'nebula':
       case 'quantum-matter':
@@ -944,6 +1115,8 @@ export class Particle {
         this.restitution = 0.85;
         this.baseSize = 3;
         this.hue = 300; // Magenta
+        this.resonance = 0.9;
+        this.fluidity = 0.6;
         break;
       case 'bio-energy':
       case 'mutating-matter':
@@ -951,12 +1124,14 @@ export class Particle {
         this.restitution = 0.65;
         this.baseSize = 2.8;
         this.hue = 120; // Green
+        this.resonance = 0.5;
         break;
       case 'antimatter':
         this.mass = 1;
         this.restitution = 1.0;
         this.baseSize = 2;
         this.hue = 0; // Bright Red
+        this.volatility = 1.0;
         break;
       default:
         this.mass = 1;
@@ -986,6 +1161,28 @@ export class Particle {
 
     this.vx *= friction;
     this.vy *= friction;
+
+    // Apply physical properties
+    // 1. Volatility: Random jitter
+    if (this.volatility > 0) {
+      this.vx += (Math.random() - 0.5) * this.volatility * 0.5;
+      this.vy += (Math.random() - 0.5) * this.volatility * 0.5;
+    }
+
+    // 2. Radiation: Emit effects
+    if (this.radiation > 0.5 && Math.random() < this.radiation * 0.05) {
+      if (collisionEffects) {
+        collisionEffects.push(new CollisionEffect(this.x, this.y, 'emission', this.color, config.highDefinition));
+      }
+    }
+
+    // 3. Resonance: Pulsing energy
+    this.pulse += 0.05 + this.resonance * 0.1;
+
+    // 4. Density: Affects friction (higher density = more momentum/less friction)
+    const effectiveFriction = friction + (this.density - 1) * 0.005;
+    this.vx *= Math.min(0.999, effectiveFriction);
+    this.vy *= Math.min(0.999, effectiveFriction);
 
     // Mode specific behaviors
     modes.forEach(mode => {
@@ -1095,8 +1292,8 @@ export class Particle {
       // Phase evolution
       this.quantumState.phase += 0.05 * (this.quantumState.energyLevel + 1);
       
-      // Coherence decay
-      this.quantumState.coherence *= 0.9995;
+      // Coherence decay - influenced by collapseTendency
+      this.quantumState.coherence *= (0.9995 - this.collapseTendency * 0.002);
       
       // Trigger decoherence effect if coherence falls below threshold
       if (this.quantumState.coherence < 0.2 && !this.quantumState.isCollapsed) {
@@ -1287,6 +1484,16 @@ export class Particle {
   }
 
   draw(ctx: CanvasRenderingContext2D, config: any, modes: SimulationMode[] = [], quantumSettings: any = {}) {
+    if (modes.includes('quantum')) {
+      this.drawOrb(ctx, config);
+      
+      // Add quantum-specific overlays if needed
+      if (quantumSettings.isQuantumEnergyView) {
+        // ... existing quantum energy view logic ...
+      }
+      return;
+    }
+
     const twinkle = Math.sin(this.pulse) * 0.3 + 0.7;
     const glowIntensity = config.glowLevel * this.energy * twinkle;
     

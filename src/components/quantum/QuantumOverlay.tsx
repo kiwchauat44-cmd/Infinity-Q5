@@ -1,7 +1,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Zap, Activity, Atom, Globe, Sparkles, Flame, Cpu, Layers } from 'lucide-react';
-import { EnergyLayer, EnergyInfo } from '../../types';
+import { X, Zap, Activity, Atom, Globe, Sparkles, Flame, Cpu, Layers, MousePointer2, Move, RotateCw, Radio } from 'lucide-react';
+import { EnergyLayer, EnergyInfo, ParticleBehavior } from '../../types';
+
+const BEHAVIORS: { id: ParticleBehavior; label: string; icon: React.ReactNode }[] = [
+  { id: 'static', label: 'คงที่', icon: <MousePointer2 size={12} /> },
+  { id: 'pulsate', label: 'สั่นสะเทือน', icon: <Radio size={12} /> },
+  { id: 'wander', label: 'ล่องลอย', icon: <Move size={12} /> },
+  { id: 'orbit', label: 'โคจร', icon: <RotateCw size={12} /> },
+];
 
 interface QuantumOverlayProps {
   isOpen: boolean;
@@ -173,6 +180,25 @@ export default function QuantumOverlay({
                   </div>
 
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <div className="col-span-2 mb-2">
+                      <div className="text-[10px] text-white/40 font-bold uppercase mb-2">พฤติกรรม (BEHAVIOR)</div>
+                      <div className="flex gap-1">
+                        {BEHAVIORS.map((b) => (
+                          <button
+                            key={b.id}
+                            onClick={() => onUpdateLayer(layer.id, { behavior: b.id })}
+                            className={`flex-1 flex flex-col items-center gap-1 p-2 rounded-xl border transition-all ${
+                              layer.behavior === b.id
+                                ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+                                : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'
+                            }`}
+                          >
+                            {b.icon}
+                            <span className="text-[8px] font-bold uppercase">{b.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <div className="space-y-1">
                       <div className="flex justify-between text-[10px] text-white/40 font-bold uppercase">
                         <span>ความสว่าง</span>
